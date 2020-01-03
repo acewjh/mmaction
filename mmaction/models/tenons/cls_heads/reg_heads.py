@@ -16,7 +16,8 @@ class RegHead(nn.Module):
 	             in_channels=2048,
 	             num_output=1,
 	             init_std=0.01,
-	             loss_func='ranking_mse'):
+	             loss_func='ranking_mse',
+	             loss_args={}):
 		assert loss_func in ['ranking_mse', 'ranking', 'mse']
 		super(RegHead, self).__init__()
 		
@@ -28,11 +29,11 @@ class RegHead(nn.Module):
 		self.spatial_feature_size = spatial_feature_size
 		self.init_std = init_std
 		if loss_func == 'ranking_mse':
-			self.loss_func = BatchRankingMSE_Loss()
-		elif self.loss_func == 'ranking':
-			self.loss_func = BatchRankingLoss()
+			self.loss_func = BatchRankingMSE_Loss(**loss_args)
+		elif loss_func == 'ranking':
+			self.loss_func = BatchRankingLoss(**loss_args)
 		else:
-			self.loss_func = F.mse_loss()
+			self.loss_func = nn.MSELoss(**loss_args)
 		
 		if self.dropout_ratio != 0:
 			self.dropout = nn.Dropout(p=self.dropout_ratio)

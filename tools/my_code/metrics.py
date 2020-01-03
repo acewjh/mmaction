@@ -6,3 +6,6 @@ def accuracy(pred, labels):
 
 def src(pred, labels):
 	return spearmanr(pred, labels)[0]
+
+def med(preds, labels):
+	return np.mean(np.sqrt((preds - labels) ** 2))

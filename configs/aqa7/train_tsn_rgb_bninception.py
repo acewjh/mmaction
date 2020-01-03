@@ -21,7 +21,8 @@ model = dict(
         dropout_ratio=0.8,
         in_channels=1024,
         init_std=0.001,
-        num_output=1))
+        num_output=1,
+        loss_func='ranking'))
 train_cfg = None
 test_cfg = None
 # dataset settings
@@ -80,7 +81,7 @@ data = dict(
 		test_mode=True))
 # optimizer
 optimizer = dict(type='Adam', lr=0.0001, weight_decay=0.0001)
-# optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
+optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 # learning policy
 lr_config = dict(
     policy='step',
@@ -101,11 +102,11 @@ metric_config = dict(
 )
 # yapf:enable
 # runtime settings
-total_epochs = 80
+total_epochs = 200
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/AQA-7/tsn_rgb_bninception_exp6'
-load_from = None
+work_dir = './work_dirs/AQA-7/tsn_rgb_bninception_exp10'
+load_from = './modelzoo/tsn_2d_rgb_bninception_seg3_f1s1_b32_g8-98160339.pth'
 resume_from = None
 
 

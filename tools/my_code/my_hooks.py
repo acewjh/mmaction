@@ -3,7 +3,7 @@ import numpy as np
 import os.path as osp
 from collections import OrderedDict
 from mmcv.runner.hooks import Hook
-from .metrics import accuracy, src
+from .metrics import accuracy, src, med
 
 class CacheOutputHook(Hook):
 	def after_train_iter(self, runner):
@@ -24,19 +24,25 @@ class CacheOutputHook(Hook):
 	def before_val_epoch(self, runner):
 		self.before_train_epoch(runner)
 		
-class CalMetricHook(Hook):
-	def __init__(self, metric):
-		assert metric in ['accuracy', 'src']
-		self.metric = metric
-		if metric == 'accuracy':
-			self.metric_func = accuracy
-		else:
-			self.metric_func = src
+class CalMetricsHook(Hook):
+	def __init__(self, metrics):
+		for mtr in metrics:
+			assert mtr in ['accuracy', 'src', 'med']
+		self.metrics = list(set(metrics))
+		self.metrics_funcs = []
+		for mtr in metrics:
+			if mtr == 'accuracy':
+				self.metrics_funcs.append(accuracy)
+			elif mtr == 'src':
+				self.metrics_funcs.append(src)
+			else:
+				self.metrics_funcs.append(med)
 			
 	def after_train_epoch(self, runner):
-		performance = self.metric_func(runner.output_cache['output'], runner.output_cache['labels'])
-		runner.log_buffer.update({self.metric:performance})
-		runner.log_buffer.average()
+		for i, mtr in enumerate(self.metrics):
+			performance = self.metrics_funcs[i](runner.output_cache['output'], runner.output_cache['labels'])
+			runner.log_buffer.update({self.mtr:performance})
+			runner.log_buffer.average()
 		
 	def after_val_epoch(self, runner):
 		self.after_train_epoch(runner)
