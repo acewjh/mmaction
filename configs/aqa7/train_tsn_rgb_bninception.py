@@ -85,7 +85,7 @@ optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 # learning policy
 lr_config = dict(
     policy='step',
-    step=[30, 60])
+    step=[30, 100])
 checkpoint_config = dict(interval=5)
 workflow = [('train', 5), ('val', 1)]
 # workflow = [('train', 1)]
@@ -98,14 +98,14 @@ log_config = dict(
         dict(type='TensorboardLoggerHook')
     ])
 metric_config = dict(
-	metric='src'
+	metrics=['src', 'med']
 )
 # yapf:enable
 # runtime settings
 total_epochs = 200
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/AQA-7/tsn_rgb_bninception_exp10'
+work_dir = './work_dirs/AQA-7/tsn_rgb_bninception_exp11'
 load_from = './modelzoo/tsn_2d_rgb_bninception_seg3_f1s1_b32_g8-98160339.pth'
 resume_from = None
 

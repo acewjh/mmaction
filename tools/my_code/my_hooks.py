@@ -16,7 +16,7 @@ class CacheOutputHook(Hook):
 				runner.output_cache[key] = np.hstack((runner.output_cache[key], np.squeeze(value.cpu().detach().numpy())))
 	
 	def before_train_epoch(self, runner):
-		self.output_cache = OrderedDict()
+		runner.output_cache = OrderedDict()
 	
 	def after_val_iter(self, runner):
 		self.after_train_iter(runner)
@@ -41,24 +41,29 @@ class CalMetricsHook(Hook):
 	def after_train_epoch(self, runner):
 		for i, mtr in enumerate(self.metrics):
 			performance = self.metrics_funcs[i](runner.output_cache['output'], runner.output_cache['labels'])
-			runner.log_buffer.update({self.mtr:performance})
-			runner.log_buffer.average()
+			runner.log_buffer.update({mtr:performance})
+		runner.log_buffer.average()
 		
 	def after_val_epoch(self, runner):
 		self.after_train_epoch(runner)
 		
 class SaveOutputHook(Hook):
+	def __init__(self):
+		self.val_label_flag = True
+	
 	def after_train_epoch(self, runner):
 		self.save_output('train', runner, 'pred_epoch_{}.npy', runner.output_cache['output'])
 		self.save_output('train', runner, 'labels_epoch_{}.npy', runner.output_cache['labels'])
 		
 	def after_val_epoch(self, runner):
 		self.save_output('val', runner, 'pred_epoch_{}.npy', runner.output_cache['output'])
-		if runner.epoch == 0:
+		if self.val_label_flag:
+			self.val_label_flag = False
 			self.save_output('val', runner, 'labels_epoch_{}.npy', runner.output_cache['labels'])
 		
 	def save_output(self, mode, runner, tmpl, tensor):
-		save_path = osp.join(runner.work_dir, 'output', mode, tmpl.format(runner.epoch + 1))
+		epoch = runner.epoch + 1 if mode == 'train' else runner.epoch
+		save_path = osp.join(runner.work_dir, 'output', mode, tmpl.format(epoch))
 		if not osp.exists(osp.dirname(save_path)):
 			os.makedirs(osp.dirname(save_path))
 		np.save(save_path, tensor)

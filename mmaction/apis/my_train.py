@@ -8,7 +8,7 @@ from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 
 from mmaction.core import (DistOptimizerHook, DistEvalTopKAccuracyHook,
 						   AVADistEvalmAPHook)
-from tools.my_code.my_hooks import CacheOutputHook, CalMetricHook, SaveOutputHook
+from tools.my_code.my_hooks import CacheOutputHook, CalMetricsHook, SaveOutputHook
 from mmaction.datasets import build_dataloader
 from .env import get_root_logger
 
@@ -132,7 +132,7 @@ def _non_dist_train(model, datasets, cfg, validate=False):
 	runner.register_training_hooks(cfg.lr_config, cfg.optimizer_config,
 								   cfg.checkpoint_config, cfg.log_config)
 	runner.register_hook(CacheOutputHook())
-	runner.register_hook(CalMetricHook(**cfg.metric_config))
+	runner.register_hook(CalMetricsHook(**cfg.metric_config))
 	runner.register_hook(SaveOutputHook())
 
 	if cfg.resume_from:
