@@ -27,14 +27,20 @@ class BaseRecognizer(nn.Module):
     @abstractmethod
     def forward_test(self, num_modalities, **kwargs):
         pass
-
+    
+    @abstractmethod
+    def extract_temporal_feature(self, num_modalities, **kwargs):
+        pass
+    
     def init_weights(self, pretrained=None):
         if pretrained is not None:
             logger = logging.getLogger()
             logger.info("load model from: {}".format(pretrained))
 
-    def forward(self, num_modalities, img_meta, return_loss=True, **kwargs):
+    def forward(self, num_modalities, img_meta, return_loss=True, extract_temporal=False, **kwargs):
         num_modalities = int(num_modalities[0])
+        if extract_temporal:
+            return self.extract_temporal_feature(num_modalities, img_meta, **kwargs)
         if return_loss:
             return self.forward_train(num_modalities, img_meta, **kwargs)
         else:

@@ -7,6 +7,9 @@ from .losses import (
 from .ssn_losses import (OHEMHingeLoss, completeness_loss,
                          classwise_regression_loss)
 
+from .reg_losses import (BatchRankingLoss, BatchRankingMSE_Loss, BatchRankingPairLoss,
+                         CCCLoss, MSE_CCCLoss, MultistreamLoss)
+
 __all__ = [
     'charbonnier_loss', 'SSIM_loss',
     'weighted_nll_loss', 'weighted_cross_entropy',
@@ -15,5 +18,6 @@ __all__ = [
     'weighted_multilabel_binary_cross_entropy',
     'multilabel_accuracy',
     'OHEMHingeLoss', 'completeness_loss',
-    'classwise_regression_loss'
+    'classwise_regression_loss', 'BatchRankingLoss', 'BatchRankingMSE_Loss', 'BatchRankingPairLoss',
+    'CCCLoss', 'MSE_CCCLoss', 'MultistreamLoss'
 ]

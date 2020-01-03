@@ -152,4 +152,22 @@ class TSN2D(BaseRecognizer):
         if self.with_cls_head:
             x = self.cls_head(x)
 
-        return x.cpu().numpy()
+        return x.cpu().detach().numpy()
+    
+    def extract_temporal_feature(self,
+                     num_modalities,
+                     img_meta,
+                     **kwargs):
+        assert num_modalities == 1
+        img_group = kwargs['img_group_0']
+
+        bs = img_group.shape[0]
+        img_group = img_group.reshape(
+            (-1, self.in_channels) + img_group.shape[3:])
+        num_seg = img_group.shape[0] // bs
+
+        x = self.extract_feat(img_group)
+        if self.with_spatial_temporal_module:
+            x = self.spatial_temporal_module(x)
+            
+        return x.cpu().detach().numpy()

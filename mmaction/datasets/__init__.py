@@ -1,4 +1,5 @@
 from .rawframes_dataset import RawFramesDataset
+from .aqa_dataset import AQA_SingleClassDataset
 from .lmdbframes_dataset import LMDBFramesDataset
 from .video_dataset import VideoDataset
 from .ssn_dataset import SSNDataset
