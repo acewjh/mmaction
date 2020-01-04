@@ -12,7 +12,9 @@ from mmaction.apis import (init_dist, get_root_logger,
 from mmaction.apis.my_train import train_network
 from mmaction.models import build_recognizer
 import torch
+import os
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '1,2,3,4'
 
 def parse_args():
 	parser = argparse.ArgumentParser(description='Train an action recognizer')
@@ -52,6 +54,10 @@ def main():
 	# update configs according to CLI args
 	if args.work_dir is not None:
 		cfg.work_dir = args.work_dir
+	if not os.path.exists(cfg.work_dir):
+		os.makedirs(cfg.work_dir)
+	cmd = 'cp {} {}/'.format(args.config, cfg.work_dir)
+	os.system(cmd)
 	if args.resume_from is not None:
 		cfg.resume_from = args.resume_from
 	cfg.gpus = args.gpus

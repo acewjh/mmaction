@@ -153,7 +153,8 @@ class AQA_SingleClassDataset(Dataset):
             num_rgb_frames = len(glob.glob(osp.join(rgb_dir, '*.jpg')))
             num_flow_x_frames = len(glob.glob(osp.join(flow_dir, 'flow_x*.jpg')))
             num_flow_y_frames = len(glob.glob(osp.join(flow_dir, 'flow_y*.jpg')))
-            assert num_rgb_frames == (num_flow_x_frames  + 1) and num_flow_x_frames == num_flow_y_frames
+            assert num_rgb_frames == (num_flow_x_frames  + 1) and num_flow_x_frames == num_flow_y_frames \
+                   or num_flow_x_frames == 0
             
             return num_rgb_frames
         

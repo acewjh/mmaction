@@ -22,7 +22,8 @@ model = dict(
         in_channels=1024,
         init_std=0.001,
         num_output=1,
-        loss_func='ranking'))
+        loss_func='ranking_mse',
+        loss_args={'alpha':1.0, 'beta':100}))
 train_cfg = None
 test_cfg = None
 # dataset settings
@@ -35,7 +36,7 @@ data = dict(
     workers_per_gpu=2,
     train=dict(
         type=dataset_type,
-	    action_dir='/mnt/sdb1/wjh/datasets/AQA-7/Actions/diving',
+	    action_dir='/home/wangjiahao/datasets/AQA-7/Actions/diving',
 	    subset='train',
 	    label_name='label',
         img_norm_cfg=img_norm_cfg,
@@ -59,7 +60,7 @@ data = dict(
         test_mode=False),
 	val=dict(
 		type=dataset_type,
-		action_dir='/mnt/sdb1/wjh/datasets/AQA-7/Actions/diving',
+		action_dir='/home/wangjiahao/datasets/AQA-7/Actions/diving',
 		subset='test',
 		label_name='label',
 		img_norm_cfg=img_norm_cfg,
@@ -105,7 +106,7 @@ metric_config = dict(
 total_epochs = 200
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/AQA-7/tsn_rgb_bninception_exp11'
+work_dir = '/home/wangjiahao/experiments/AQA-7/diving/tsn_rgb_bninception_exp12'
 load_from = './modelzoo/tsn_2d_rgb_bninception_seg3_f1s1_b32_g8-98160339.pth'
 resume_from = None
 

@@ -11,7 +11,6 @@ from mmaction.models import build_recognizer, recognizers
 from mmaction.core.evaluation.accuracy import (softmax, top_k_accuracy,
                                                mean_class_accuracy)
 
-
 def single_test(model, data_loader):
     model.eval()
     results = []
@@ -72,9 +71,6 @@ def main():
             cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)
         load_checkpoint(model, args.checkpoint, strict=True)
         model = MMDataParallel(model, device_ids=[0])
-        
-        # foo_input = torch.zeros((8, 3, 10, 224, 224)).cuda()
-        # foo_output = model([1], None, img_group_0=foo_input, return_loss=False)
         
         data_loader = build_dataloader(
             dataset,
