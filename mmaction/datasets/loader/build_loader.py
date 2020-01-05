@@ -3,6 +3,7 @@ from functools import partial
 from mmcv.runner import get_dist_info
 from mmcv.parallel import collate
 from torch.utils.data import DataLoader
+from torch.utils.data.sampler import SequentialSampler
 
 from .sampler import GroupSampler, DistributedGroupSampler
 
@@ -25,8 +26,8 @@ def build_dataloader(dataset,
         batch_size = imgs_per_gpu
         num_workers = workers_per_gpu
     else:
-        if not kwargs.get('shuffle', True):
-            sampler = None
+        if dataset.test_mode and num_gpus == 1:
+            sampler = SequentialSampler(dataset)
         else:
             sampler = GroupSampler(dataset, imgs_per_gpu)
         batch_size = num_gpus * imgs_per_gpu

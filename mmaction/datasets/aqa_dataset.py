@@ -174,7 +174,7 @@ class AQA_SingleClassDataset(Dataset):
         return mmcv.load(proposal_file)
 
     def get_ann_info(self, idx):
-        return {'path': self.video_infos[idx].path,
+        return {'name': self.video_infos[idx].name,
                 'num_frames': self.video_infos[idx].num_frames,
                 'label': self.video_infos[idx].label}
         # return self.video_infos[idx]['ann']

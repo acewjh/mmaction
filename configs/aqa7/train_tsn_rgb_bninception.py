@@ -23,7 +23,7 @@ model = dict(
         init_std=0.001,
         num_output=1,
         loss_func='ranking_mse',
-        loss_args={'alpha':1.0, 'beta':100}))
+        loss_args={'alpha':1.0, 'beta':10}))
 train_cfg = None
 test_cfg = None
 # dataset settings
@@ -79,7 +79,30 @@ data = dict(
 		random_crop=False,
 		more_fix_crop=False,
 		multiscale_crop=False,
-		test_mode=True))
+		test_mode=True),
+    test=dict(
+        type=dataset_type,
+        action_dir='/home/wangjiahao/datasets/AQA-7/Actions/diving',
+        subset='test',
+        label_name='label',
+        img_norm_cfg=img_norm_cfg,
+        num_segments=20,
+        new_length=1,
+        new_step=1,
+        random_shift=False,
+        modality='RGB',
+        image_tmpl='{:05d}.jpg',
+        img_scale=256,
+        input_size=224,
+        div_255=False,
+        flip_ratio=0,
+        resize_keep_ratio=True,
+        oversample=None,
+        random_crop=False,
+        more_fix_crop=False,
+        multiscale_crop=False,
+        test_mode=True)
+)
 # optimizer
 optimizer = dict(type='Adam', lr=0.0001, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))

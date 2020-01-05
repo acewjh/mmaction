@@ -10,6 +10,9 @@ from mmaction.datasets import build_dataloader
 from mmaction.models import build_recognizer, recognizers
 from mmaction.core.evaluation.accuracy import (softmax, top_k_accuracy,
                                                mean_class_accuracy)
+
+from tools.my_code.metrics import src, med
+import numpy as np
 import os
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
@@ -46,7 +49,8 @@ def parse_args():
         default=1,
         type=int,
         help='Number of processes per GPU')
-    parser.add_argument('--out', help='output result file')
+    parser.add_argument('--result_save_path', help='output result file')
+    parser.add_argument('--label_save_path', help='label file')
     parser.add_argument('--use_softmax', action='store_true',
                         help='whether to use softmax score')
     args = parser.parse_args()
@@ -55,9 +59,6 @@ def parse_args():
 
 def main():
     args = parse_args()
-
-    if args.out is not None and not args.out.endswith(('.pkl', '.pickle')):
-        raise ValueError('The output file must be a pkl file.')
 
     cfg = mmcv.Config.fromfile(args.config)
     # set cudnn_benchmark
@@ -74,7 +75,7 @@ def main():
             cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)
         load_checkpoint(model, args.checkpoint, strict=True)
         model = MMDataParallel(model, device_ids=[0])
-        
+
         data_loader = build_dataloader(
             dataset,
             imgs_per_gpu=1,
@@ -96,29 +97,24 @@ def main():
             range(args.gpus),
             workers_per_gpu=args.proc_per_gpu)
 
-    if args.out:
-        print('writing results to {}'.format(args.out))
-        mmcv.dump(outputs, args.out)
-
     gt_labels = []
     for i in range(len(dataset)):
         ann = dataset.get_ann_info(i)
         gt_labels.append(ann['label'])
-
-    if args.use_softmax:
-        print("Averaging score over {} clips with softmax".format(
-            outputs[0].shape[0]))
-        results = [softmax(res, dim=1).mean(axis=0) for res in outputs]
-    else:
-        print("Averaging score over {} clips without softmax (ie, raw)".format(
-            outputs[0].shape[0]))
-        results = [res.mean(axis=0) for res in outputs]
-    top1, top5 = top_k_accuracy(results, gt_labels, k=(1, 5))
-    mean_acc = mean_class_accuracy(results, gt_labels)
-    print("Mean Class Accuracy = {:.02f}".format(mean_acc * 100))
-    print("Top-1 Accuracy = {:.02f}".format(top1 * 100))
-    print("Top-5 Accuracy = {:.02f}".format(top5 * 100))
-
+    gt_labels = np.array(gt_labels)
+    results = np.squeeze(np.concatenate(outputs))
+    if args.result_save_path:
+        if not os.path.exists(os.path.dirname(args.result_save_path)):
+            os.makedirs(os.path.dirname(args.result_save_path))
+        np.save(args.result_save_path, results)
+    if args.label_save_path:
+        if not os.path.exists(os.path.dirname(args.label_save_path)):
+            os.makedirs(os.path.dirname(args.label_save_path))
+        np.save(args.label_save_path, gt_labels)
+    distance = med(results, gt_labels)
+    corr = src(results, gt_labels)
+    print("\nSRC {}".format(corr))
+    print("MED {}".format(distance))
 
 if __name__ == '__main__':
     main()
