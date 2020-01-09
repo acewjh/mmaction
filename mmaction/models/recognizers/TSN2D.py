@@ -125,7 +125,7 @@ class TSN2D(BaseRecognizer):
         if self.with_cls_head:
             cls_score = self.cls_head(x)
             gt_label = gt_label.squeeze()
-            loss_cls = self.cls_head.loss(cls_score, gt_label)
+            loss_cls = self.cls_head.loss(cls_score, gt_label, is_val=kwargs['is_val'])
             losses.update(loss_cls)
 
         return losses

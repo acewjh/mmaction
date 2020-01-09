@@ -8,7 +8,7 @@ from .ssn_losses import (OHEMHingeLoss, completeness_loss,
                          classwise_regression_loss)
 
 from .reg_losses import (BatchRankingLoss, BatchRankingMSE_Loss, BatchRankingPairLoss,
-                         CCCLoss, MSE_CCCLoss, MultistreamLoss)
+                         CCCLoss, MSE_CCCLoss, MultistreamLoss, RankingMSE_GradNorm)
 
 __all__ = [
     'charbonnier_loss', 'SSIM_loss',

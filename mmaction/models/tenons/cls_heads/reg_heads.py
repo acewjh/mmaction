@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from ....losses import BatchRankingMSE_Loss, BatchRankingLoss
+from ....losses import BatchRankingMSE_Loss, BatchRankingLoss, RankingMSE_GradNorm
 from ...registry import HEADS
 
 
@@ -17,8 +17,8 @@ class RegHead(nn.Module):
 	             num_output=1,
 	             init_std=0.01,
 	             loss_func='ranking_mse',
-	             loss_args={}):
-		assert loss_func in ['ranking_mse', 'ranking', 'mse']
+	             **kwargs):
+		assert loss_func in ['ranking_mse', 'ranking', 'mse', 'ranking_mse_gradnorm']
 		super(RegHead, self).__init__()
 		
 		self.with_avg_pool = with_avg_pool
@@ -28,12 +28,15 @@ class RegHead(nn.Module):
 		self.temporal_feature_size = temporal_feature_size
 		self.spatial_feature_size = spatial_feature_size
 		self.init_std = init_std
+		self.loss_name = loss_func
 		if loss_func == 'ranking_mse':
-			self.loss_func = BatchRankingMSE_Loss(**loss_args)
+			self.loss_func = BatchRankingMSE_Loss(**kwargs)
 		elif loss_func == 'ranking':
-			self.loss_func = BatchRankingLoss(**loss_args)
+			self.loss_func = BatchRankingLoss(**kwargs)
+		elif loss_func == 'mse':
+			self.loss_func = nn.MSELoss(**kwargs)
 		else:
-			self.loss_func = nn.MSELoss(**loss_args)
+			self.loss_func = RankingMSE_GradNorm(**kwargs)
 		
 		if self.dropout_ratio != 0:
 			self.dropout = nn.Dropout(p=self.dropout_ratio)
@@ -65,9 +68,13 @@ class RegHead(nn.Module):
 	
 	def loss(self,
 	         reg_score,
-	         labels):
+	         labels,
+			 **kwargs):
 		losses = dict()
-		losses['loss_reg'] = self.loss_func(reg_score, labels)
+		if not self.loss_name == 'ranking_mse_gradnorm':
+			losses['loss_reg'] = self.loss_func(reg_score, labels, **kwargs)
+		else:
+			losses['loss_reg'], losses['loss_grad'] = self.loss_func(reg_score, labels, **kwargs)
 		losses['output'] = reg_score
 		losses['labels'] = labels
 		

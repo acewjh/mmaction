@@ -3,12 +3,12 @@ from __future__ import division
 from collections import OrderedDict
 
 import torch
-from mmcv.runner import Runner, DistSamplerSeedHook
+from mmcv.runner import DistSamplerSeedHook, Runner
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 
 from mmaction.core import (DistOptimizerHook, DistEvalTopKAccuracyHook,
 						   AVADistEvalmAPHook)
-from tools.my_code.my_hooks import CacheOutputHook, CalMetricsHook, SaveOutputHook
+from tools.my_code.my_hooks import CacheOutputHook, CalMetricsHook, SaveOutputHook, RenormalizeLossHook
 from mmaction.datasets import build_dataloader
 from .env import get_root_logger
 
@@ -27,22 +27,30 @@ def parse_losses(losses):
 			raise TypeError(
 				'{} is not a tensor or list of tensors'.format(loss_name))
 
-	loss = sum(_value for _key, _value in log_vars.items() if 'loss' in _key)
+	# loss = sum(_value for _key, _value in log_vars.items() if 'loss' in _key)
 
-	log_vars['loss'] = loss
+	# log_vars['loss'] = loss
+	loss_reg = log_vars['loss_reg']
+	if 'loss_grad' in log_vars.keys():
+		loss_grad = log_vars['loss_grad']
+	else:
+		loss_grad = None
 	for name in log_vars:
 		log_vars[name] = log_vars[name].item()
 
-	return loss, log_vars, output
+	return loss_reg, loss_grad, log_vars, output
 
 
 def batch_processor(model, data, train_mode):
+	data.update(is_val=not train_mode)
 	losses = model(**data)
-	loss, log_vars, output = parse_losses(losses)
+	loss_reg, loss_grad, log_vars, output = parse_losses(losses)
 
 	outputs = dict(
-		loss=loss, log_vars=log_vars,
+		loss=loss_reg, log_vars=log_vars,
 		num_samples=len(data['img_group_0'].data), output=output)
+	if not loss_grad is None:
+		outputs.update(loss_grad=loss_grad)
 
 	return outputs
 
@@ -134,6 +142,8 @@ def _non_dist_train(model, datasets, cfg, validate=False):
 	runner.register_hook(CacheOutputHook())
 	runner.register_hook(CalMetricsHook(**cfg.metric_config))
 	runner.register_hook(SaveOutputHook())
+	if cfg.model.cls_head.loss_func == 'ranking_mse_gradnorm':
+		runner.register_hook(RenormalizeLossHook())
 
 	if cfg.resume_from:
 		runner.resume(cfg.resume_from)
